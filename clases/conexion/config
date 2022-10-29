@@ -1,0 +1,9 @@
+{
+    "conexion":{
+        "server" : "localhost",
+        "user" : "root",
+        "password" : "1234",
+        "database" : "financiera",
+        "port": "3306"
+    }
+}
