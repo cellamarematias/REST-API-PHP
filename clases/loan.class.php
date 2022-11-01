@@ -17,8 +17,10 @@ class loan extends conexion {
     private $coin = "";
     private $start_date = "";
     private $clauses = "";
+    private $documents_id = "";
     private $id_user = "";
     private $id_customer = "";
+    private $token = "";
 
     public function listloan($page = 1){
         $inicio  = 0 ;
@@ -35,14 +37,18 @@ class loan extends conexion {
     public function getLoan($id){
         $query = "SELECT * FROM " . $this->table . " WHERE loan_id = '$id'";
         return parent::obtenerDatos($query);
-
     }
 
     public function post($json){
         $_respuestas = new respuestas;
         $datos = json_decode($json,true);
 
-        //loan_type, amount, interest, rate, fee, fee_amount, payment_type, coin, start_date, clauses, id_user, id_customer
+        if(!isset($datos['token'])){
+            return $_respuestas->error_401();
+        }else{
+            $this->token = $datos['token'];
+            $arrayToken =   $this->buscarToken();
+            if($arrayToken){
                 if(!isset($datos['loan_type']) || !isset($datos['amount']) || !isset($datos['interest'])){
                     return $_respuestas->error_400();
                 }else{
@@ -53,10 +59,11 @@ class loan extends conexion {
                     if(isset($datos['fee_amount'])) { $this->fee_amount = $datos['fee_amount']; }
                     if(isset($datos['loan_type'])) { $this->loan_type = $datos['loan_type']; }
                     if(isset($datos['coin'])) { $this->coin = $datos['coin']; }
+                    if(isset($datos['payment_type'])) { $this->payment_type = $datos['payment_type']; }
                     if(isset($datos['clauses'])) { $this->clauses = $datos['clauses']; }
+                    if(isset($datos['documents_id'])) { $this->documents_id = $datos['documents_id']; }
                     if(isset($datos['id_user'])) { $this->id_user = $datos['id_user']; }
                     if(isset($datos['id_customer'])) { $this->id_customer = $datos['id_customer']; }
-                    if(isset($datos['payment_type'])) { $this->payment_type = $datos['payment_type']; }
                     $resp = $this->insertLoan();
                     if($resp){
                         $respuesta = $_respuestas->response;
@@ -68,54 +75,15 @@ class loan extends conexion {
                         return $_respuestas->error_500();
                     }
                 }
+            }
+        }
 
     }
 
-    // public function post($json){
-    //     $_respuestas = new respuestas;
-    //     $datos = json_decode($json,true);
-
-    //     if(!isset($datos['token'])){
-    //             return $_respuestas->error_401();
-    //     }else{
-    //         $this->token = $datos['token'];
-    //         $arrayToken =   $this->buscarToken();
-    //         if($arrayToken){
-
-    //             if(!isset($datos['nombre']) || !isset($datos['dni']) || !isset($datos['correo'])){
-    //                 return $_respuestas->error_400();
-    //             }else{
-    //                 $this->nombre = $datos['nombre'];
-    //                 $this->dni = $datos['dni'];
-    //                 $this->correo = $datos['correo'];
-    //                 if(isset($datos['telefono'])) { $this->telefono = $datos['telefono']; }
-    //                 if(isset($datos['direccion'])) { $this->direccion = $datos['direccion']; }
-    //                 if(isset($datos['codigoPostal'])) { $this->codigoPostal = $datos['codigoPostal']; }
-    //                 if(isset($datos['genero'])) { $this->genero = $datos['genero']; }
-    //                 if(isset($datos['fechaNacimiento'])) { $this->fechaNacimiento = $datos['fechaNacimiento']; }
-    //                 $resp = $this->insertarPaciente();
-    //                 if($resp){
-    //                     $respuesta = $_respuestas->response;
-    //                     $respuesta["result"] = array(
-    //                         "loan_id" => $resp
-    //                     );
-    //                     return $respuesta;
-    //                 }else{
-    //                     return $_respuestas->error_500();
-    //                 }
-    //             }
-
-    //         }else{
-    //             return $_respuestas->error_401("El Token que envio es invalido o ha caducado");
-    //         }
-    //     }
-    // }
-
-
     private function insertLoan(){
-        $query = "INSERT INTO " . $this->table . " (loan_type, amount, interest, fee, fee_amount)
+        $query = "INSERT INTO " . $this->table . " (loan_type, amount, interest, fee, fee_amount, payment_type, coin, documents_id, clauses)
         values
-        ('" . $this->loan_type . "','" . $this->amount ."', '" . $this->interest . "', '" . $this->fee . "', '" . $this->fee_amount . "')"; 
+        ('" . $this->loan_type . "','" . $this->amount ."', '" . $this->interest . "', '" . $this->fee . "', '" . $this->fee_amount . "', '" . $this->payment_type . "', '" . $this->coin . "', '" . $this->documents_id . "', '" . $this->clauses . "')"; 
         $resp = parent::nonQueryId($query);
         if($resp){
              return $resp;
@@ -123,7 +91,7 @@ class loan extends conexion {
             return 0;
         }
     }
-    
+
     public function put($json){
         $_respuestas = new respuestas;
         $datos = json_decode($json,true);
@@ -137,41 +105,43 @@ class loan extends conexion {
                 if(!isset($datos['loan_id'])){
                     return $_respuestas->error_400();
                 }else{
-                    $this->loan_id = $datos['loan_id'];
-                    if(isset($datos['nombre'])) { $this->nombre = $datos['nombre']; }
-                    if(isset($datos['dni'])) { $this->dni = $datos['dni']; }
-                    if(isset($datos['correo'])) { $this->correo = $datos['correo']; }
-                    if(isset($datos['telefono'])) { $this->telefono = $datos['telefono']; }
-                    if(isset($datos['direccion'])) { $this->direccion = $datos['direccion']; }
-                    if(isset($datos['codigoPostal'])) { $this->codigoPostal = $datos['codigoPostal']; }
-                    if(isset($datos['genero'])) { $this->genero = $datos['genero']; }
-                    if(isset($datos['fechaNacimiento'])) { $this->fechaNacimiento = $datos['fechaNacimiento']; }
-        
-                    $resp = $this->modificarPaciente();
-                    if($resp){
-                        $respuesta = $_respuestas->response;
-                        $respuesta["result"] = array(
-                            "loan_id" => $this->loan_id
-                        );
-                        return $respuesta;
+                    if(!isset($datos['loan_id'])){
+                        return $_respuestas->error_400();
                     }else{
-                        return $_respuestas->error_500();
+                        $this->loan_id = $datos['loan_id'];
+                        $this->loan_type = $datos['loan_type'];
+                        $this->amount = $datos['amount'];
+                        $this->interest = $datos['interest'];
+                        if(isset($datos['fee'])) { $this->fee = $datos['fee']; }
+                        if(isset($datos['fee_amount'])) { $this->fee_amount = $datos['fee_amount']; }
+                        if(isset($datos['loan_type'])) { $this->loan_type = $datos['loan_type']; }
+                        if(isset($datos['coin'])) { $this->coin = $datos['coin']; }
+                        if(isset($datos['payment_type'])) { $this->payment_type = $datos['payment_type']; }
+                        if(isset($datos['clauses'])) { $this->clauses = $datos['clauses']; }
+                        if(isset($datos['documents_id'])) { $this->documents_id = $datos['documents_id']; }
+                        // if(isset($datos['id_user'])) { $this->id_user = $datos['id_user']; }
+                        // if(isset($datos['id_customer'])) { $this->id_customer = $datos['id_customer']; }
+                        $resp = $this->editLoan();
+                        if($resp){
+                            $respuesta = $_respuestas->response;
+                            $respuesta["result"] = array(
+                                "loan_id" => $resp
+                            );
+                            return $respuesta;
+                        }else{
+                            return $_respuestas->error_500();
+                        }
                     }
                 }
-
-            }else{
-                return $_respuestas->error_401("El Token que envio es invalido o ha caducado");
             }
         }
-
-
     }
+    
 
-
-    private function modificarPaciente(){
-        $query = "UPDATE " . $this->table . " SET Nombre ='" . $this->nombre . "',Direccion = '" . $this->direccion . "', DNI = '" . $this->dni . "', CodigoPostal = '" .
-        $this->codigoPostal . "', Telefono = '" . $this->telefono . "', Genero = '" . $this->genero . "', FechaNacimiento = '" . $this->fechaNacimiento . "', Correo = '" . $this->correo .
-         "' WHERE loan_id = '" . $this->loan_id . "'"; 
+    private function editLoan(){
+        $query = "UPDATE " . $this->table . " SET loan_type ='" . $this->loan_type . "', amount = '" . $this->amount . "', interest = '" . $this->interest . "', fee = '" .
+        $this->fee . "', fee_amount = '" . $this->fee_amount . "', payment_type = '" . $this->payment_type . "', coin = '" . $this->coin . "', documents_id = '" . $this->documents_id .
+        "', clauses = '" . $this->clauses . "' WHERE loan_id = '" . $this->loan_id . "'"; 
         $resp = parent::nonQuery($query);
         if($resp >= 1){
              return $resp;
@@ -190,13 +160,13 @@ class loan extends conexion {
         }else{
             $this->token = $datos['token'];
             $arrayToken =   $this->buscarToken();
-            if($arrayToken){
+            if($arrayToken && $arrayToken[0]['role'] !== 'admin'){
 
                 if(!isset($datos['loan_id'])){
                     return $_respuestas->error_400();
                 }else{
                     $this->loan_id = $datos['loan_id'];
-                    $resp = $this->eliminarPaciente();
+                    $resp = $this->deleteLoan();
                     if($resp){
                         $respuesta = $_respuestas->response;
                         $respuesta["result"] = array(
@@ -219,7 +189,7 @@ class loan extends conexion {
     }
 
 
-    private function eliminarPaciente(){
+    private function deleteLoan(){
         $query = "DELETE FROM " . $this->table . " WHERE loan_id= '" . $this->loan_id . "'";
         $resp = parent::nonQuery($query);
         if($resp >= 1 ){
@@ -231,7 +201,7 @@ class loan extends conexion {
 
 
     private function buscarToken(){
-        $query = "SELECT  TokenId,UsuarioId,Estado from usuarios_token WHERE Token = '" . $this->token . "' AND Estado = 'Activo'";
+        $query = "SELECT  * FROM user_token WHERE token = '" . $this->token . "' AND active = 1";
         $resp = parent::obtenerDatos($query);
         if($resp){
             return $resp;
@@ -243,7 +213,7 @@ class loan extends conexion {
 
     private function actualizarToken($tokenid){
         $date = date("Y-m-d H:i");
-        $query = "UPDATE usuarios_token SET Fecha = '$date' WHERE TokenId = '$tokenid' ";
+        $query = "UPDATE user_token SET date = '$date' WHERE token_id = '$tokenid' ";
         $resp = parent::nonQuery($query);
         if($resp >= 1){
             return $resp;
@@ -251,8 +221,6 @@ class loan extends conexion {
             return 0;
         }
     }
-
-
 
 }
 

@@ -1,6 +1,6 @@
 <?php 
 
-class respuestas{
+class respuestas {
 
     public  $response = [
         'status' => "ok",

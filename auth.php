@@ -11,7 +11,7 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
 
     //recibir datos
     $postBody = file_get_contents("php://input");
-    print_r($postBody);
+    //print_r($postBody);
 
     //enviamos los datos al manejador
     $datosArray = $_auth->login($postBody);
